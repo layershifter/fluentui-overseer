@@ -18,7 +18,8 @@ $areas: ${JSON.stringify(AREA_LABELS)};
 const IMPROPERLY_TRACKED_ISSUES_QUERY = `
 .issues
   .[labels.[$ = 'Fluent UI react-components (v9)']]
-  .[projectItems.[$.project != 'Fluent UI - Unified']]
+  .({ id, title, isOnBoard: projectItems.[$.project = 'Fluent UI - Unified'].size() > 0 })
+  .[isOnBoard = false]
 `;
 
 const IMPROPERLY_LABELED_ISSUES_QUERY = `
