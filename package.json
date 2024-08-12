@@ -1,0 +1,22 @@
+{
+  "name": "fluentui-overseer",
+  "version": "1.0.0",
+  "license": "MIT",
+  "packageManager": "yarn@4.4.0",
+  "scripts": {
+    "build": "yarn fetch && yarn discovery-build",
+    "fetch:codeowners": "node ./fetch/fetchCodeOwners.mjs > ./data/codeowners.txt",
+    "fetch:issues": "node ./fetch/fetchIssues.mjs > ./data/issues.json",
+    "fetch:timestamp": "node ./fetch/fetchTimestamp.mjs > ./data/timestamp.txt",
+    "fetch": "yarn fetch:codeowners && yarn fetch:issues && yarn fetch:timestamp",
+    "start": "yarn discovery"
+  },
+  "dependencies": {
+    "@discoveryjs/cli": "2.8.0",
+    "@discoveryjs/discovery": "1.0.0-beta.83",
+    "@types/node": "22.2.0",
+    "prettier": "3.3.3",
+    "typescript": "5.5.4",
+    "zod": "3.23.8"
+  }
+}

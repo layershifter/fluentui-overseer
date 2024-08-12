@@ -1,0 +1,44 @@
+name: "Rebuild and deploy"
+on:
+  schedule:
+    - cron: "0/15 * * * *" # every 15 minutes
+  workflow_dispatch:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          cache: "yarn"
+          node-version: "22"
+
+      - run: yarn install --immutable
+      - run: yarn build
+        env:
+          GH_TOKEN: ${{ secrets.GH_READONLY_TOKEN }}
+
+      - name: Upload artifacts
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: "./build"
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1

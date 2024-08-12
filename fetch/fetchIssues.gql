@@ -1,0 +1,35 @@
+query ($endCursor: String) {
+  repository(owner: "microsoft", name: "fluentui") {
+    issues(first: 100, filterBy: { states: [OPEN] }, after: $endCursor) {
+      edges {
+        node {
+          id: number
+          title
+          labels(first: 10) {
+            nodes {
+              name
+            }
+          }
+          projectItems(first: 10) {
+            nodes {
+              project {
+                title
+              }
+              assignedTeam: fieldValueByName(name: "Team") {
+                ... on ProjectV2ItemFieldSingleSelectValue {
+                  name
+                }
+              }
+              type
+            }
+          }
+        }
+      }
+
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+}
