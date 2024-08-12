@@ -63,6 +63,8 @@ discovery.page.define("default", [
       { label: 'v9 issues', value: .issues.[labels.[$ = 'Fluent UI react-components (v9)']].size() },
       { label: 'v8 issues', value: .issues.[labels.[$ = 'Fluent UI react (v8)']].size() },
       { label: 'v0 issues', value: .issues.[labels.[$ = 'Fluent UI react-northstar']].size() },
+      { label: 'WC issues', value: .issues.[labels.[$ = 'web-components']].size() },
+      { label: 'Build System', value: .issues.[labels.[$ = 'Area: Build System']].size() },
     ]`,
   },
 
