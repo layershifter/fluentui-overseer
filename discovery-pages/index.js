@@ -1,6 +1,5 @@
 const AREA_LABELS = [
   "Area: Build System",
-  "Area: Documentation",
   "Package: charting",
   "Fluent UI react (v8)",
   "Fluent UI react-components (v9)",
