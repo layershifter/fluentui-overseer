@@ -1,10 +1,10 @@
 const AREA_LABELS = [
-  "Area: Build System",
-  "Package: charting",
-  "Fluent UI react (v8)",
   "Fluent UI react-components (v9)",
+  "Fluent UI react (v8)",
   "Fluent UI react-northstar (v0)",
   "web-components",
+  "Area: Build System",
+  "Package: charting",
 ];
 
 //
@@ -60,11 +60,7 @@ discovery.page.define("default", [
     item: "indicator",
     data: `[
       { label: 'Open issues', value: .issues.size() },
-      { label: 'v9 issues', value: .issues.[labels.[$ = 'Fluent UI react-components (v9)']].size() },
-      { label: 'v8 issues', value: .issues.[labels.[$ = 'Fluent UI react (v8)']].size() },
-      { label: 'v0 issues', value: .issues.[labels.[$ = 'Fluent UI react-northstar']].size() },
-      { label: 'WC issues', value: .issues.[labels.[$ = 'web-components']].size() },
-      { label: 'Build System', value: .issues.[labels.[$ = 'Area: Build System']].size() },
+      ${AREA_LABELS.map((area) => `{ label: '${area.replace("Fluent UI", "")}', value: .issues.[labels.[$ = '${area}']].size() }`).join(",\n")}
     ]`,
   },
 
