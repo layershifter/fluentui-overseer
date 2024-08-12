@@ -16,14 +16,22 @@ $areas: ${JSON.stringify(AREA_LABELS)};
 
 .issues.({ id, title, areas: labels.[$ in $areas] }).[areas.size() = 0]
 `;
-const IMPROPERLY_TRACKED_ISSUES_QUERY = `
+
+const V9_ISSUES_NOT_ON_BOARD = `
 .issues
   .[labels.[$ = 'Fluent UI react-components (v9)']]
   .({ id, title, isOnBoard: projectItems.[$.project = 'Fluent UI - Unified'].size() > 0 })
   .[isOnBoard = false]
 `;
 
-const IMPROPERLY_LABELED_ISSUES_QUERY = `
+const ARCHIVED_OR_DONE_ISSUES_QUERY = `
+.issues
+  .[labels.[$ = 'Fluent UI react-components (v9)']]
+  .({ id, title, board: projectItems.[$.project = 'Fluent UI - Unified'][] })
+  .[board.isArchived or board.status = "Done"]
+`;
+
+const ISSUES_WITHOUT_PATH_LABEL_QUERY = `
 .issues
   .[labels.[$ = "Fluent UI react-components (v9)"]]
   .({ id, title, labels: labels.[$.indexOf("Component") = 0 or $ = "Area: Build System" or $ = "Area: Positioning"] })
@@ -69,7 +77,7 @@ discovery.page.define("default", [
     header: {
       view: "hstack",
       content: [
-        'text:"Issues with assigned area"',
+        'text:"Issues without assigned area"',
         {
           view: "block",
           content: [
@@ -115,7 +123,7 @@ discovery.page.define("default", [
     header: {
       view: "hstack",
       content: [
-        'text:"Improperly tracked issues"',
+        'text:"v9 issues not on the board"',
         {
           view: "block",
           content: [
@@ -123,7 +131,7 @@ discovery.page.define("default", [
               view: "badge",
               color: "#da3b01",
               textColor: "#ffffff",
-              data: `${IMPROPERLY_TRACKED_ISSUES_QUERY}.size()`,
+              data: `${V9_ISSUES_NOT_ON_BOARD}.size()`,
             },
           ],
         },
@@ -152,7 +160,7 @@ discovery.page.define("default", [
           content: "text:$",
         },
       ],
-      data: `${IMPROPERLY_TRACKED_ISSUES_QUERY}.sort(id desc)`,
+      data: `${V9_ISSUES_NOT_ON_BOARD}.sort(id desc)`,
     },
   ],
 
@@ -161,7 +169,7 @@ discovery.page.define("default", [
     header: {
       view: "hstack",
       content: [
-        'text:"Improperly labeled issues"',
+        'text:"v9 issues are archived or done"',
         {
           view: "block",
           content: [
@@ -169,7 +177,53 @@ discovery.page.define("default", [
               view: "badge",
               color: "#da3b01",
               textColor: "#ffffff",
-              data: `${IMPROPERLY_LABELED_ISSUES_QUERY}.size()`,
+              data: `${V9_ISSUES_NOT_ON_BOARD}.size()`,
+            },
+          ],
+        },
+      ],
+    },
+    content: [
+      'alert:"There are issues that marked as archived or done in the Unified board."',
+    ],
+  },
+  [
+    {
+      view: "table",
+      cols: [
+        {
+          header: "ID",
+          data: "id",
+          content: {
+            view: "link",
+            data: '{ href: "https://github.com/microsoft/fluentui/issues/" + $, text: "#" + $ }',
+            external: true,
+          },
+        },
+        {
+          header: "Title",
+          data: "title",
+          content: "text:$",
+        },
+      ],
+      data: `${V9_ISSUES_NOT_ON_BOARD}.sort(id desc)`,
+    },
+  ],
+
+  {
+    view: "section",
+    header: {
+      view: "hstack",
+      content: [
+        'text:"v9 issues without path labels"',
+        {
+          view: "block",
+          content: [
+            {
+              view: "badge",
+              color: "#da3b01",
+              textColor: "#ffffff",
+              data: `${ISSUES_WITHOUT_PATH_LABEL_QUERY}.size()`,
             },
           ],
         },
@@ -198,7 +252,7 @@ discovery.page.define("default", [
           content: "text:$",
         },
       ],
-      data: `${IMPROPERLY_LABELED_ISSUES_QUERY}.sort(id desc)`,
+      data: `${ISSUES_WITHOUT_PATH_LABEL_QUERY}.sort(id desc)`,
     },
   ],
 
@@ -207,7 +261,7 @@ discovery.page.define("default", [
     header: {
       view: "hstack",
       content: [
-        'text:"Issues without assigned team"',
+        'text:"Issues on Unified board without assigned team"',
         {
           view: "block",
           content: [

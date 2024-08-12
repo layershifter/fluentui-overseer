@@ -20,6 +20,12 @@ query ($endCursor: String) {
                   name
                 }
               }
+              isArchived
+              status: fieldValueByName(name: "Status") {
+                ... on ProjectV2ItemFieldSingleSelectValue {
+                  name
+                }
+              }
               type
             }
           }

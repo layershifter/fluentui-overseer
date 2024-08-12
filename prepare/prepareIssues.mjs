@@ -7,6 +7,8 @@ const Label = z.object({
 const ProjectItem = z.object({
   project: z.object({ title: z.string() }),
   assignedTeam: z.object({ name: z.string() }).nullable(),
+  isArchived: z.boolean(),
+  status: z.object({ name: z.string() }).nullable(),
   type: z.string(),
 });
 const Issue = z.object({
@@ -44,8 +46,9 @@ export async function prepareIssues() {
         .filter((projectItem) => projectItem.type === "ISSUE")
         .map((projectItem) => ({
           project: projectItem.project.title,
+          isArchived: projectItem.isArchived,
+          status: projectItem.status?.name.replace(/[^a-z]/gi, ""),
           assignedTeam: projectItem.assignedTeam?.name,
-          type: projectItem.type,
         })),
     })),
   );
