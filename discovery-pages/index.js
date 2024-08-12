@@ -1,6 +1,5 @@
 const AREA_LABELS = [
-  "Area: Charting",
-  "Area: Build System",
+  "Package: charting",
   "Fluent UI react (v8)",
   "Fluent UI react-components (v9)",
   "Fluent UI react-northstar (v0)",
@@ -25,7 +24,7 @@ const IMPROPERLY_TRACKED_ISSUES_QUERY = `
 const IMPROPERLY_LABELED_ISSUES_QUERY = `
 .issues
   .[labels.[$ = "Fluent UI react-components (v9)"]]
-  .({ id, title, labels: labels.[$.indexOf("Component") = 0 or $ = "Area: Build System"] })
+  .({ id, title, labels: labels.[$.indexOf("Component") = 0 or $ = "Area: Build System" or $ = "Area: Positioning"] })
   .[labels.size() = 0]
 `;
 
