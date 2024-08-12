@@ -177,7 +177,7 @@ discovery.page.define("default", [
               view: "badge",
               color: "#da3b01",
               textColor: "#ffffff",
-              data: `${V9_ISSUES_NOT_ON_BOARD}.size()`,
+              data: `${ARCHIVED_OR_DONE_ISSUES_QUERY}.size()`,
             },
           ],
         },
@@ -206,7 +206,7 @@ discovery.page.define("default", [
           content: "text:$",
         },
       ],
-      data: `${V9_ISSUES_NOT_ON_BOARD}.sort(id desc)`,
+      data: `${ARCHIVED_OR_DONE_ISSUES_QUERY}.sort(id desc)`,
     },
   ],
 
