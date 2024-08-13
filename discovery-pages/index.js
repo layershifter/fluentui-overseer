@@ -138,7 +138,7 @@ discovery.page.define("default", [
       ],
     },
     content: [
-      `alert:"There are issues that have 'Fluent UI react-components (v9)' label, but are *not present* in the board. Issues with "Needs: Triage" & "Needs: Needs: Author Feedback" labels are excluded."`,
+      `alert:"There are issues that have 'Fluent UI react-components (v9)' label, but are *not present* in the board. Issues with 'Needs: Triage' & 'Needs: Needs: Author Feedback' labels are excluded."`,
     ],
   },
   [
