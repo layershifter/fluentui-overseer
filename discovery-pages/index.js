@@ -35,6 +35,7 @@ const PATH_LABELS = [
   "Component:*",
   "Package: motion",
   "Package: positioning",
+  "Package: priority-overflow",
   "Package: utilities",
   "Package: theme",
   "Area: Build System",
