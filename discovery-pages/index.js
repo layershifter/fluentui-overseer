@@ -34,6 +34,7 @@ const ARCHIVED_OR_DONE_ISSUES_QUERY = `
 const PATH_LABELS = [
   "Component:*",
   "Package: motion",
+  "Package: migration",
   "Package: positioning",
   "Package: priority-overflow",
   "Package: utilities",
