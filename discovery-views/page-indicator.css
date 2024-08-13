@@ -1,0 +1,70 @@
+.view-page-indicators {
+    display: flex;
+    gap: 1px 3px;
+}
+
+.view-page-indicator-group {
+    display: flex;
+    gap: 1px;
+    flex-shrink: 0;
+}
+
+.view-page-indicator {
+    flex-shrink: 0;
+    display: grid;
+    grid-template:
+        'title annotation hint'
+        'value value value';
+    grid-template-columns: auto 1fr auto;
+    gap: 0 5px;
+    padding: 4px 12px;
+    min-width: 100px;
+    background: #9b9b9b26;
+}
+.view-page-indicator > .title {
+    grid-area: title;
+    display: block;
+    margin-top: 2px;
+    margin-bottom: -2px;
+    color: #888;
+    font-size: 11px;
+}
+.view-page-indicator > .value {
+    grid-area: value;
+    display: block;
+    font-family: Helvetica Neue, Helvetica, Tahoma, Arial, sans-serif;
+    font-size: 180%;
+    font-weight: 200;
+    text-align: right;
+    white-space: nowrap;
+}
+.view-page-indicator > .value .unit {
+    font-size: 65%;
+    color: #888;
+    padding-left: .25ex;
+}
+.view-page-indicator > .hint {
+    grid-area: hint;
+    display: inline-block;
+    width: 24px;
+    height: 29px;
+    mask: url('./info.svg');
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: 14px;
+    background-color: #666;
+    margin-left: -6px;
+    margin-right: -12px;
+    margin-top: -4px;
+    margin-bottom: -16px;
+}
+.view-page-indicator > .hint:hover {
+    background-color: #aaa;
+}
+.view-page-indicator > .annotation {
+    grid-area: annotation;
+    display: block;
+    height: 22px;
+    margin-top: -2px;
+    margin-bottom: -5px;
+}

@@ -1,384 +1,202 @@
-const AREA_LABELS = [
-  "Fluent UI react-components (v9)",
-  "Fluent UI react (v8)",
-  "Fluent UI react-northstar (v0)",
-  "web-components",
-  "Area: Build System",
-  "Package: charting",
-];
-
-//
-// Queries
-//
-
-const ISSUES_WITHOUT_AREA_LABEL_QUERY = `
-$areas: ${JSON.stringify(AREA_LABELS)}; 
-
-.issues.({ id, title, areas: labels.[$ in $areas] }).[areas.size() = 0]
-`;
-
-const V9_ISSUES_NOT_ON_BOARD = `
-.issues
-  .[labels.[$ = 'Fluent UI react-components (v9)']]
-  .({ id, title, isUnderTriage: labels.[$ = "Needs: Triage :mag:" or $ = "Needs: Author Feedback"].size() > 0, isOnBoard: projectItems.[$.project = 'Fluent UI - Unified'].size() > 0 })
-  .[isOnBoard = false and isUnderTriage = false]
-`;
-
-const ARCHIVED_OR_DONE_ISSUES_QUERY = `
-.issues
-  .[labels.[$ = 'Fluent UI react-components (v9)']]
-  .({ id, title, board: projectItems.[$.project = 'Fluent UI - Unified'][] })
-  .[board.isArchived or board.status = "Done"]
-`;
-
-const PATH_LABELS = [
-  "Component:*",
-  "Package: docs",
-  "Package: icons",
-  "Package: motion",
-  "Package: migration",
-  "Package: positioning",
-  "Package: priority-overflow",
-  "Package: utilities",
-  "Package: theme",
-  "Area: Build System",
-];
-const ISSUES_WITHOUT_PATH_LABEL_QUERY = `
-$paths: ${JSON.stringify(PATH_LABELS)};
-
-.issues
-  .[labels.[$ = "Fluent UI react-components (v9)"]]
-  .({ 
-    id,
-    title,
-    isUnderTriage: labels.[$ = "Needs: Triage :mag:" or $ = "Needs: Author Feedback"].size() > 0,
-    isMissingPath: labels.[$.indexOf("Component") = 0 or $ in $paths].size() = 0
-  })
-  .[isUnderTriage = false and isMissingPath]
-`;
-
-const ISSUES_ON_BOARD_WITHOUT_ASSIGNED_TEAM_QUERY = `
-.issues
-  .({ id, title, project: projectItems.[project = "Fluent UI - Unified"][0] })
-  .[project is not undefined]
-  .[project.assignedTeam is undefined]
-`;
-
-const OWNERSHIP_ISSUES_QUERY = `
-.issues
-  .[projectItems.[project = "Fluent UI - Unified"] and labels.[$ = "Fluent UI react-components (v9)"]]
-  .({ id, title, component: labels.[$.indexOf("Component") = 0][], currentOwner: projectItems.[project = "Fluent UI - Unified"][].assignedTeam })
-  .[currentOwner is not undefined]
-  .[component is not undefined]
-  .({ ..., component: component.replace("Component: ", "") })
-  .({ ..., expectedOwner: #.data.codeowners[component].owners })
-  .[currentOwner != "v-pm" and currentOwner not in expectedOwner]
-`;
+const basicIssueTable = {
+  view: 'switch',
+  content: [
+    { when: 'no $', content: 'text:"No issues"' },
+    { content: {
+      view: "table",
+      cols: [
+        {
+          header: "ID",
+          data: "id",
+          content: 'link:{ href: "https://github.com/microsoft/fluentui/issues/" + $, text: "#" + $, external: true }',
+        },
+        {
+          header: "Title",
+          data: "title",
+          content: "text",
+        },
+      ],
+    } }
+  ]
+};
 
 discovery.page.define("default", [
   {
     view: "page-header",
-    prelude: ['text:"Data snapshot "', { view: "badge", data: "timestamp" }],
+    prelude: ['text:"Data snapshot "', 'badge:timestamp'],
     content: 'h1:"Fluent UI Github Issues"',
   },
 
   {
-    view: "inline-list",
-    item: "indicator",
-    data: `[
-      { label: 'Open issues', value: .issues.size() },
-      ${AREA_LABELS.map((area) => `{ label: '${area.replace("Fluent UI", "")}', value: .issues.[labels.[$ = '${area}']].size() }`).join(",\n")}
-    ]`,
+    view: 'page-indicators',
+    content: [
+      { title: 'Open issues', value: '=issues.size()' },
+      {
+        view: 'page-indicator-group',
+        content: `=areaLabels.($area: $; {
+          title: replace("Fluent UI", ""),
+          value: @.issues.count(=> labels has $area?)
+        })`,
+      },
+    ],
   },
 
   {
     view: "section",
-    header: {
-      view: "hstack",
-      content: [
-        'text:"Issues without assigned area"',
-        {
-          view: "block",
-          content: [
-            {
-              view: "badge",
-              color: "#da3b01",
-              textColor: "#ffffff",
-              data: `${ISSUES_WITHOUT_AREA_LABEL_QUERY}.size()`,
-            },
-          ],
-        },
-      ],
-    },
+    data: `
+      $areas: #.data.areaLabels; 
+
+      issues
+        .[labels.count(=>$ in $areas?) = 0]
+        .sort(id desc)
+    `,
+    header: [
+      'text:"Issues without assigned area "',
+      'pill-badge{ whenData: true, color: "#da3b01", text: size() }',
+      { view: 'info-icon', content: 'text:`There are issues that don\'t have an assigned area, we track following: ${#.data.areaLabels.join(", ")}.`' }
+    ],
     content: [
-      `alert:"There are issues that don't have an assigned area, we track following: ${AREA_LABELS.join(", ")}."`,
+      basicIssueTable
     ],
   },
-  [
-    {
-      view: "table",
-      cols: [
-        {
-          header: "ID",
-          data: "id",
-          content: {
-            view: "link",
-            data: '{ href: "https://github.com/microsoft/fluentui/issues/" + $, text: "#" + $ }',
-            external: true,
-          },
-        },
-        {
-          header: "Title",
-          data: "title",
-          content: "text:$",
-        },
-      ],
-      data: `${ISSUES_WITHOUT_AREA_LABEL_QUERY}.sort(id desc)`,
-    },
-  ],
 
   {
     view: "section",
-    header: {
-      view: "hstack",
-      content: [
-        'text:"v9 issues not on the board"',
-        {
-          view: "block",
-          content: [
-            {
-              view: "badge",
-              color: "#da3b01",
-              textColor: "#ffffff",
-              data: `${V9_ISSUES_NOT_ON_BOARD}.size()`,
-            },
-          ],
-        },
-      ],
-    },
+    data: `
+      .issues
+        .[labels.[$ = 'Fluent UI react-components (v9)']]
+        .({
+          id,
+          title,
+          isUnderTriage: labels.[$ = "Needs: Triage :mag:" or $ = "Needs: Author Feedback"].size() > 0,
+          isOnBoard: projectItems.[$.project = 'Fluent UI - Unified'].size() > 0
+        })
+        .[not isOnBoard and not isUnderTriage]
+        .sort(id desc)
+    `,
+    header: [
+      'text:"v9 issues not on the board "',
+      'pill-badge{ whenData: true, color: "#da3b01", text: size() }',
+      { view: 'info-icon', content: `text:"There are issues that have 'Fluent UI react-components (v9)' label, but are *not present* in the board. Issues with 'Needs: Triage' & 'Needs: Needs: Author Feedback' labels are excluded."` },
+    ],
     content: [
-      `alert:"There are issues that have 'Fluent UI react-components (v9)' label, but are *not present* in the board. Issues with 'Needs: Triage' & 'Needs: Needs: Author Feedback' labels are excluded."`,
+      basicIssueTable
     ],
   },
-  [
-    {
-      view: "table",
-      cols: [
-        {
-          header: "ID",
-          data: "id",
-          content: {
-            view: "link",
-            data: '{ href: "https://github.com/microsoft/fluentui/issues/" + $, text: "#" + $ }',
-            external: true,
-          },
-        },
-        {
-          header: "Title",
-          data: "title",
-          content: "text:$",
-        },
-      ],
-      data: `${V9_ISSUES_NOT_ON_BOARD}.sort(id desc)`,
-    },
-  ],
 
   {
     view: "section",
-    header: {
-      view: "hstack",
-      content: [
-        'text:"v9 issues are archived or done"',
-        {
-          view: "block",
-          content: [
-            {
-              view: "badge",
-              color: "#da3b01",
-              textColor: "#ffffff",
-              data: `${ARCHIVED_OR_DONE_ISSUES_QUERY}.size()`,
-            },
-          ],
-        },
-      ],
-    },
-    content: [
-      'alert:"There are issues that marked as archived or done in the Unified board."',
+    data: `
+      .issues
+        .[labels.[$ = 'Fluent UI react-components (v9)']]
+        .({ id, title, board: projectItems.[$.project = 'Fluent UI - Unified'][] })
+        .[board.isArchived or board.status = "Done"]
+        .sort(id desc)
+    `,
+    header: [
+      'text:"v9 issues are archived or done "',
+      'pill-badge{ whenData: true, color: "#da3b01", text: size() }',
+      { view: 'info-icon', content: 'text:"There are issues that marked as archived or done in the Unified board."' },
     ],
+    content: [
+      basicIssueTable
+    ]
   },
-  [
-    {
-      view: "table",
-      cols: [
-        {
-          header: "ID",
-          data: "id",
-          content: {
-            view: "link",
-            data: '{ href: "https://github.com/microsoft/fluentui/issues/" + $, text: "#" + $ }',
-            external: true,
-          },
-        },
-        {
-          header: "Title",
-          data: "title",
-          content: "text:$",
-        },
-      ],
-      data: `${ARCHIVED_OR_DONE_ISSUES_QUERY}.sort(id desc)`,
-    },
-  ],
 
   {
     view: "section",
-    header: {
-      view: "hstack",
-      content: [
-        'text:"v9 issues without path labels"',
-        {
-          view: "block",
-          content: [
-            {
-              view: "badge",
-              color: "#da3b01",
-              textColor: "#ffffff",
-              data: `${ISSUES_WITHOUT_PATH_LABEL_QUERY}.size()`,
-            },
-          ],
-        },
-      ],
-    },
+    data: `
+      $paths: pathLabels;
+
+      .issues
+        .[labels.[$ = "Fluent UI react-components (v9)"]]
+        .({ 
+          id,
+          title,
+          isUnderTriage: labels.[$ = "Needs: Triage :mag:" or $ = "Needs: Author Feedback"].size() > 0,
+          isMissingPath: labels.[$ ~= /^Component/ or $ in $paths].size() = 0
+        })
+        .[not isUnderTriage and isMissingPath]
+        .sort(id desc)
+    `,
+    header: [
+      'text:"v9 issues without path labels "',
+      'pill-badge{ whenData: true, color: "#da3b01", text: size() }',
+      { view: 'info-icon', content: 'text:`There are issues that have \'Fluent UI react-components (v9)\' label, but do not have ${#.data.pathLabels.(`\'${$}\'`).join(", ")} labels. Issues with \'Needs: Triage\' & \'Needs: Needs: Author Feedback\' labels are excluded.`' },
+    ],
     content: [
-      `alert:"There are issues that have 'Fluent UI react-components (v9)' label, but do not have ${PATH_LABELS.map((p) => `'${p}'`).join(", ")} labels. Issues with 'Needs: Triage' & 'Needs: Needs: Author Feedback' labels are excluded."`,
+      basicIssueTable
     ],
   },
-  [
-    {
-      view: "table",
-      cols: [
-        {
-          header: "ID",
-          data: "id",
-          content: {
-            view: "link",
-            data: '{ href: "https://github.com/microsoft/fluentui/issues/" + $, text: "#" + $ }',
-            external: true,
-          },
-        },
-        {
-          header: "Title",
-          data: "title",
-          content: "text:$",
-        },
-      ],
-      data: `${ISSUES_WITHOUT_PATH_LABEL_QUERY}.sort(id desc)`,
-    },
-  ],
 
   {
     view: "section",
-    header: {
-      view: "hstack",
-      content: [
-        'text:"Issues on Unified board without assigned team"',
-        {
-          view: "block",
-          content: [
-            {
-              view: "badge",
-              color: "#da3b01",
-              textColor: "#ffffff",
-              data: `${ISSUES_ON_BOARD_WITHOUT_ASSIGNED_TEAM_QUERY}.size()`,
-            },
-          ],
-        },
-      ],
-    },
+    data: `
+      .issues
+        .({ id, title, project: projectItems.[project = "Fluent UI - Unified"][0] })
+        .[project is not undefined]
+        .[project.assignedTeam is undefined]
+        .sort(id desc)
+    `,
+    header: [
+      'text:"Issues on Unified board without assigned team "',
+      'pill-badge{ whenData: true, color: "#da3b01", text: size() }',
+      { view: 'info-icon', content: 'text:"There are issues that are on the Unified board, but don\'t have a team assigned "' },
+    ],
     content: [
-      'alert:"There are issues that are on the Unified board, but don\'t have a team assigned "',
+      basicIssueTable,
     ],
   },
-  [
-    {
-      view: "table",
-      cols: [
-        {
-          header: "ID",
-          data: "id",
-          content: {
-            view: "link",
-            data: '{ href: "https://github.com/microsoft/fluentui/issues/" + $, text: "#" + $ }',
-            external: true,
-          },
-        },
-        {
-          header: "Title",
-          data: "title",
-          content: "text:$",
-        },
-      ],
-      data: `${ISSUES_ON_BOARD_WITHOUT_ASSIGNED_TEAM_QUERY}.sort(id desc)`,
-    },
-  ],
 
   {
     view: "section",
-    header: {
-      view: "hstack",
-      content: [
-        'text:"Issues with unexpected owners"',
-        {
-          view: "block",
-          content: [
-            {
-              view: "badge",
-              color: "#da3b01",
-              textColor: "#ffffff",
-              data: `${OWNERSHIP_ISSUES_QUERY}.size()`,
-            },
-          ],
-        },
-      ],
-    },
+    data: `
+      .issues
+        .[projectItems.project has "Fluent UI - Unified" and labels has "Fluent UI react-components (v9)"]
+        .({ id, title, component: labels[=>$ ~= /^Component/], currentOwner: projectItems[=> project = "Fluent UI - Unified"].assignedTeam })
+        .[currentOwner is not undefined]
+        .[component is not undefined]
+        .({ ..., component: component.replace(/^Component: /, "") })
+        .({ ..., expectedOwner: #.data.codeowners[component].owners })
+        .[currentOwner != "v-pm" and currentOwner not in expectedOwner]
+    `,
+    header: [
+      'text:"Issues with unexpected owners "',
+      'pill-badge{ whenData: true, color: "#da3b01", text: size() }',
+      { view: 'info-icon', content: 'text:"There are issues that may have unexpected or invalid owners."' },
+    ],
     content: [
-      'alert:"There are issues that may have unexpected or invalid owners."',
+      {
+        view: "table",
+        cols: [
+          {
+            header: "ID",
+            data: "id",
+            content: 'link:{ href: "https://github.com/microsoft/fluentui/issues/" + $, text: "#" + $, external: true }',
+          },
+          {
+            header: "Title",
+            data: "title",
+          },
+          {
+            header: "Component",
+            data: "component",
+          },
+          {
+            header: "Current owner",
+            data: "currentOwner",
+          },
+          {
+            header: "Expected owner(s)",
+            data: "expectedOwner",
+            content: {
+              view: 'inline-list',
+              whenData: true,
+              item: 'pill-badge'
+            },
+          },
+        ],
+      },
     ],
   },
-  [
-    {
-      view: "table",
-      cols: [
-        {
-          header: "ID",
-          data: "id",
-          content: {
-            view: "link",
-            data: '{ href: "https://github.com/microsoft/fluentui/issues/" + $, text: "#" + $ }',
-            external: true,
-          },
-        },
-        {
-          header: "Title",
-          data: "title",
-          content: "text:$",
-        },
-        {
-          header: "Component",
-          data: "component",
-          content: "text:$",
-        },
-        {
-          header: "Current owner",
-          data: "currentOwner",
-          content: "text:$",
-        },
-        {
-          header: "Expected owner(s)",
-          data: "expectedOwner",
-          content: "struct",
-        },
-      ],
-      data: OWNERSHIP_ISSUES_QUERY,
-    },
-  ],
 ]);
