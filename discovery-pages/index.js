@@ -31,14 +31,23 @@ const ARCHIVED_OR_DONE_ISSUES_QUERY = `
   .[board.isArchived or board.status = "Done"]
 `;
 
+const PATH_LABELS = [
+  "Component:*",
+  "Package: positioning",
+  "Package: utilities",
+  "Package: theme",
+  "Area: Build System",
+];
 const ISSUES_WITHOUT_PATH_LABEL_QUERY = `
+$paths: ${JSON.stringify(PATH_LABELS)};
+
 .issues
   .[labels.[$ = "Fluent UI react-components (v9)"]]
   .({ 
     id,
     title,
     isUnderTriage: labels.[$ = "Needs: Triage :mag:" or $ = "Needs: Author Feedback"].size() > 0,
-    isMissingPath: labels.[$.indexOf("Component") = 0 or $ = "Area: Build System" or $ = "Area: Positioning"].size() = 0
+    isMissingPath: labels.[$.indexOf("Component") = 0 or $ in $paths].size() = 0
   })
   .[isUnderTriage = false and isMissingPath]
 `;
@@ -235,7 +244,7 @@ discovery.page.define("default", [
       ],
     },
     content: [
-      `alert:"There are issues that have 'Fluent UI react-components (v9)' label, but do not have 'Component:*' or 'Area: Build System' labels. Issues with 'Needs: Triage' & 'Needs: Needs: Author Feedback' labels are excluded."`,
+      `alert:"There are issues that have 'Fluent UI react-components (v9)' label, but do not have ${PATH_LABELS.map((p) => `'${p}'`).join(", ")} labels. Issues with 'Needs: Triage' & 'Needs: Needs: Author Feedback' labels are excluded."`,
     ],
   },
   [
