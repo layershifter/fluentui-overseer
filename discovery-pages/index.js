@@ -34,8 +34,13 @@ const ARCHIVED_OR_DONE_ISSUES_QUERY = `
 const ISSUES_WITHOUT_PATH_LABEL_QUERY = `
 .issues
   .[labels.[$ = "Fluent UI react-components (v9)"]]
-  .({ id, title, labels: labels.[$.indexOf("Component") = 0 or $ = "Area: Build System" or $ = "Area: Positioning"] })
-  .[labels.size() = 0]
+  .({ 
+    id,
+    title,
+    isUnderTriage: labels.[$ = "Needs: Triage :mag:" or $ = "Needs: Author Feedback"].size() > 0,
+    isMissingPath: labels.[$.indexOf("Component") = 0 or $ = "Area: Build System" or $ = "Area: Positioning"].size() = 0
+  })
+  .[isUnderTriage = false and isMissingPath]
 `;
 
 const ISSUES_ON_BOARD_WITHOUT_ASSIGNED_TEAM_QUERY = `
@@ -230,7 +235,7 @@ discovery.page.define("default", [
       ],
     },
     content: [
-      "alert:\"There are issues that have 'Fluent UI react-components (v9)' label, but do not have 'Component:*' or 'Area: Build System' labels.\"",
+      `alert:"There are issues that have 'Fluent UI react-components (v9)' label, but do not have 'Component:*' or 'Area: Build System' labels. Issues with 'Needs: Triage' & 'Needs: Needs: Author Feedback' labels are excluded."`,
     ],
   },
   [
