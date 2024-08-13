@@ -33,6 +33,7 @@ const ARCHIVED_OR_DONE_ISSUES_QUERY = `
 
 const PATH_LABELS = [
   "Component:*",
+  "Package: icons",
   "Package: motion",
   "Package: migration",
   "Package: positioning",
