@@ -20,7 +20,7 @@ $areas: ${JSON.stringify(AREA_LABELS)};
 const V9_ISSUES_NOT_ON_BOARD = `
 .issues
   .[labels.[$ = 'Fluent UI react-components (v9)']]
-  .({ id, title, isUnderTriage: labels.[$ = "Needs: Triage :mag:"].size() > 0, isOnBoard: projectItems.[$.project = 'Fluent UI - Unified'].size() > 0 })
+  .({ id, title, isUnderTriage: labels.[$ = "Needs: Triage :mag:" or $ = "Needs: Author Feedback"].size() > 0, isOnBoard: projectItems.[$.project = 'Fluent UI - Unified'].size() > 0 })
   .[isOnBoard = false and isUnderTriage = false]
 `;
 
@@ -138,7 +138,7 @@ discovery.page.define("default", [
       ],
     },
     content: [
-      `alert:"There are issues that have 'Fluent UI react-components (v9)' label, but are *not present* in the board. Issues with "Needs: Triage" label are excluded."`,
+      `alert:"There are issues that have 'Fluent UI react-components (v9)' label, but are *not present* in the board. Issues with "Needs: Triage" & "Needs: Needs: Author Feedback" labels are excluded."`,
     ],
   },
   [
