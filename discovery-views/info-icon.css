@@ -1,0 +1,22 @@
+.view-info-icon {
+    display: inline-block;
+    vertical-align: text-top;
+    width: 24px;
+    height: 29px;
+    mask: url('./info.svg');
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: 14px;
+    background-color: #666;
+    margin-left: -6px;
+    margin-right: -12px;
+    margin-top: -4px;
+    margin-bottom: -16px;
+}
+.view-info-icon:hover {
+    background-color: #aaa;
+}
+
+.view-info-icon-tooltip {
+    max-width: 400px !important;
+}
