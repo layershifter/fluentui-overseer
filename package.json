@@ -4,7 +4,7 @@
   "license": "MIT",
   "packageManager": "yarn@4.4.0",
   "scripts": {
-    "build": "yarn fetch && yarn discovery-build",
+    "build": "yarn fetch && yarn discovery-build --single-file",
     "fetch:codeowners": "node ./fetch/fetchCodeOwners.mjs > ./data/codeowners.txt",
     "fetch:issues": "node ./fetch/fetchIssues.mjs > ./data/issues.json",
     "fetch:timestamp": "node ./fetch/fetchTimestamp.mjs > ./data/timestamp.txt",
